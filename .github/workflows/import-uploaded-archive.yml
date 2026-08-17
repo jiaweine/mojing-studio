@@ -1,0 +1,43 @@
+name: Import Uploaded Mojing Studio Archive
+
+on:
+  push:
+    branches: [agent/import-upload]
+    paths: ['.github/import/manifest.txt']
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/import-upload
+          fetch-depth: 0
+      - name: Reconstruct and import verified archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .github/import/chunk-*.b64 | tr -d '\n\r' | base64 -d > /tmp/mojing.zip
+          echo '1b671815e08c7f3e03e4c9d132c344a52bb89500f92e4d2a09d2809149a714ee  /tmp/mojing.zip' | sha256sum -c -
+          rm -rf /tmp/src && mkdir -p /tmp/src
+          unzip -q /tmp/mojing.zip -d /tmp/src
+          root=/tmp/src
+          if [ ! -f "$root/README.md" ]; then
+            first="$(find "$root" -mindepth 1 -maxdepth 1 -type d | head -n1 || true)"
+            if [ -n "$first" ] && [ -f "$first/README.md" ]; then root="$first"; fi
+          fi
+          for f in README.md app/main.py app/orchestrator.py app/agent_kernel.py app/runtime.py app/db.py app/static/index.html tests/test_agent_kernel.py; do test -f "$root/$f"; done
+          test "$(find "$root" -type f | wc -l)" -eq 33
+          git fetch origin main
+          git checkout -B main origin/main
+          find . -mindepth 1 -maxdepth 1 ! -name .git ! -name .github -exec rm -rf {} +
+          cp -a "$root"/. .
+          git config user.name 'Mojing Studio Import'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -A
+          git commit -m 'Import uploaded Mojing Studio'
+          git push origin HEAD:main
