@@ -21,7 +21,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat .github/import/chunk-*.b64 | tr -d '\n\r' | base64 -d > /tmp/mojing.zip
+          : > /tmp/mojing.b64
+          for i in $(seq -w 0 33); do
+            f=".github/import/chunk-${i}.b64"
+            test -f "$f"
+            if [ "$i" -le 03 ]; then n=16000; elif [ "$i" -le 32 ]; then n=20000; else n=11356; fi
+            test "$(wc -c < "$f")" -ge "$n"
+            head -c "$n" "$f" >> /tmp/mojing.b64
+          done
+          test "$(wc -c < /tmp/mojing.b64)" -eq 655356
+          base64 -d /tmp/mojing.b64 > /tmp/mojing.zip
           echo '1b671815e08c7f3e03e4c9d132c344a52bb89500f92e4d2a09d2809149a714ee  /tmp/mojing.zip' | sha256sum -c -
           rm -rf /tmp/src && mkdir -p /tmp/src
           unzip -q /tmp/mojing.zip -d /tmp/src
