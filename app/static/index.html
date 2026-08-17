@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#0f1115" />
+  <title>墨境 · 长篇创作室</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+<svg class="svg-sprite" aria-hidden="true">
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="m4 4 16 8-16 8 3-8-3-8Z"/><path d="M7 12h13"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8.5" cy="9" r="1.5"/><path d="m5 18 5-5 3 3 2-2 4 4"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5A3.5 3.5 0 0 1 7.5 2H20v17H7.5A3.5 3.5 0 0 0 4 22V5.5Z"/><path d="M4 18.5A3.5 3.5 0 0 1 7.5 15H20"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+  <symbol id="i-paperclip" viewBox="0 0 24 24"><path d="m20 11-8 8a5 5 0 0 1-7-7l9-9a3.5 3.5 0 1 1 5 5l-9 9a2 2 0 1 1-3-3l8-8"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 3 1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3Z"/><path d="m19 16 .8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16Z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+</svg>
+
+<div class="app-shell">
+  <aside class="rail">
+    <div class="brand-row">
+      <div class="brand-mark">墨</div>
+      <div class="brand-copy"><strong>墨境</strong><span>长篇创作室</span></div>
+    </div>
+
+    <button id="newProject" class="new-book"><svg><use href="#i-plus"/></svg><span>新建作品</span></button>
+
+    <div class="rail-heading"><span>我的作品</span><button class="icon-btn" title="搜索作品"><svg><use href="#i-search"/></svg></button></div>
+    <div id="projectList" class="project-list"></div>
+
+    <div class="rail-bottom">
+      <button id="engineButton" class="engine-mini">
+        <span class="status-dot"></span>
+        <span><b>创作引擎</b><small id="engineMiniText">读取配置中</small></span>
+        <svg><use href="#i-chevron"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <main class="main-stage">
+    <header class="topbar">
+      <div class="book-heading">
+        <div class="mobile-brand">墨境</div>
+        <div>
+          <h1 id="projectTitle">选择一本作品开始</h1>
+          <div id="projectMeta" class="book-meta">你的章节、人物、线索与参考资料会一直留在同一个作品空间里</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <div id="healthStrip" class="health-strip"></div>
+        <button id="openStoryMobile" class="mobile-story-button">资料</button>
+        <button id="openEngine" class="soft-button"><svg><use href="#i-sliders"/></svg>创作引擎</button>
+      </div>
+    </header>
+
+    <section class="workspace">
+      <section class="conversation-pane">
+        <div id="messages" class="messages"></div>
+        <div id="progressDock" class="progress-dock hidden"></div>
+
+        <div class="starter-row" id="starterRow">
+          <button class="starter-primary" data-prompt="继续写下一章。承接上一章，先确认本章必须发生的变化，再写完整正文。"><span>继续下一章</span><small>承接剧情、完成正文，再把人物与线索更新到作品里</small></button>
+          <button data-prompt="规划接下来100章。远处只定方向，最近20章细化冲突、兑现和章尾钩子，避免重复桥段。"><span>规划后续</span><small>把最近20章想清楚</small></button>
+          <button data-prompt="做一次作品体检，先找设定冲突、人物失忆、伏笔欠账和连续几章重复的问题。"><span>作品体检</span><small>找最影响追读的问题</small></button>
+          <button data-prompt="帮我把这本书的核心卖点、主角欲望、前三卷主线和前30章抓手重新梳理一遍，先指出最值得改的地方。"><span>重新梳理</span><small>校准卖点、人物与主线</small></button>
+        </div>
+
+        <div class="composer-wrap">
+          <div id="attachmentTray" class="attachment-tray hidden"></div>
+          <div class="composer">
+            <div class="composer-tools">
+              <label class="attach-button" title="添加人物图、场景图、地图或参考资料">
+                <input id="fileInput" type="file" multiple accept="image/png,image/jpeg,image/webp,image/gif,.txt,.md,.csv,.json,.pdf" />
+                <svg><use href="#i-paperclip"/></svg>
+              </label>
+              <button id="imageHint" class="tool-chip"><svg><use href="#i-image"/></svg>参考图</button>
+              <select id="mode" aria-label="创作模式">
+                <option value="auto">自动判断</option>
+                <option value="discuss">讨论故事</option>
+                <option value="plan">规划剧情</option>
+                <option value="write">写正文</option>
+                <option value="revise">重写章节</option>
+                <option value="audit">检查作品</option>
+              </select>
+            </div>
+            <textarea id="input" rows="1" placeholder="说说你接下来想写什么，或直接丢一张人物/场景参考图…"></textarea>
+            <button id="send" class="send-button" title="发送"><svg><use href="#i-send"/></svg></button>
+          </div>
+          <div class="composer-foot"><span>Enter 发送 · Shift + Enter 换行</span><span id="uploadStatus"></span></div>
+        </div>
+      </section>
+
+      <aside class="story-panel">
+        <div class="story-tabs">
+          <button class="active" data-tab="chapters">章节</button>
+          <button data-tab="characters">人物</button>
+          <button data-tab="threads">线索</button>
+          <button data-tab="facts">设定</button>
+          <button data-tab="assets">素材</button>
+          <button data-tab="activity">记录</button>
+        </div>
+        <div id="storyPanelBody" class="story-panel-body"></div>
+      </aside>
+    </section>
+  </main>
+</div>
+
+<div id="projectModal" class="modal hidden">
+  <div class="modal-card project-modal-card">
+    <button class="modal-close" data-close="projectModal"><svg><use href="#i-x"/></svg></button>
+    <div class="modal-kicker">NEW STORY</div>
+    <h2>新建一部长篇</h2>
+    <p class="modal-lead">先把最少但最关键的东西定下来。后面的卷纲、人物关系和章节会在创作中逐步长出来。</p>
+    <div class="form-grid two">
+      <label><span>作品名</span><input id="fTitle" value="雨夜旧城" /></label>
+      <label><span>题材</span><input id="fGenre" value="都市悬疑 · 重生" /></label>
+    </div>
+    <label><span>一句话设定</span><textarea id="fPremise" rows="3" placeholder="主角是谁、最想得到什么、这个世界最反常识的机制是什么"></textarea></label>
+    <div class="form-grid two">
+      <label><span>预计章节</span><input id="fChapters" type="number" value="3000" min="1" max="10000" /></label>
+      <label><span>单章字数</span><input id="fWords" type="number" value="2500" min="500" max="12000" /></label>
+    </div>
+    <label><span>你想要的阅读感</span><textarea id="fStyle" rows="3">开场快，冲突真实，人物说话有区别；爽点要有铺垫和代价；少解释，多现场；每章结尾都改变下一章的行动条件。</textarea></label>
+    <div class="modal-actions"><button class="ghost-button" data-close="projectModal">取消</button><button id="createProject" class="accent-button">创建作品</button></div>
+  </div>
+</div>
+
+<div id="engineModal" class="modal hidden">
+  <div class="modal-card engine-card">
+    <button class="modal-close" data-close="engineModal"><svg><use href="#i-x"/></svg></button>
+    <div class="modal-kicker">CREATIVE ENGINE</div>
+    <h2>创作引擎</h2>
+    <p class="modal-lead">规划、正文、校对和参考图可以按你的习惯分别选择；不设置时会自动使用当前可用服务。</p>
+    <div id="engineProviderGrid" class="provider-grid"></div>
+    <div class="route-section">
+      <div class="route-head"><b>分工设置</b><span>留空会自动沿用默认引擎</span></div>
+      <div class="route-grid">
+        <label><span>剧情规划</span><select id="routePlanner"></select></label>
+        <label><span>正文主笔</span><select id="routeCreative"></select></label>
+        <label><span>校对与体检</span><select id="routeEditor"></select></label>
+        <label><span>参考图理解</span><select id="routeVision"></select></label>
+      </div>
+    </div>
+    <div class="quality-settings">
+      <label><span>章节质量线</span><input id="qualityThreshold" type="range" min="75" max="95" value="85" /><b id="qualityValue">85</b></label>
+      <label><span>最多整章重写</span><select id="maxRevisions"><option value="0">不自动重写</option><option value="1">1 次</option><option value="2">2 次</option><option value="3">3 次</option></select></label>
+    </div>
+    <div class="creation-settings">
+      <label><span>创作深度</span><select id="agentDepth"><option value="adaptive">自适应 · 推荐</option><option value="deep">深度创作</option><option value="maximum">极致创作</option></select><small>自适应会在高潮、伏笔回收和长线节点自动加深检查。</small></label>
+      <label class="review-toggle"><span><b>关键章节双重检查</b><small>高潮、重大反转和伏笔兑现可以额外检查一次；会增加少量用量。</small></span><input id="crossProviderCouncil" type="checkbox" /><i></i></label>
+    </div>
+    <div class="modal-actions"><button class="ghost-button" data-close="engineModal">取消</button><button id="saveEngine" class="accent-button">保存设置</button></div>
+  </div>
+</div>
+
+<div id="readerModal" class="modal hidden">
+  <div class="reader-shell">
+    <div class="reader-top"><div><div id="readerKind" class="modal-kicker"></div><h2 id="readerTitle"></h2></div><button class="modal-close inline" data-close="readerModal"><svg><use href="#i-x"/></svg></button></div>
+    <div id="readerMeta" class="reader-meta"></div>
+    <article id="readerContent" class="reader-content"></article>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>
