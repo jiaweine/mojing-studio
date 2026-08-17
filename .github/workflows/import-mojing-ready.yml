@@ -1,0 +1,42 @@
+name: Import Mojing Studio Verified Transport
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/import-mojing-ready.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Import final verified source
+        shell: bash
+        run: |
+          set -euo pipefail
+          base=https://mojingstudio-jiaweine.serveo.net
+          curl -fsSL --retry 10 --retry-delay 3 "$base/READY" | grep -F '1b671815e08c7f3e03e4c9d132c344a52bb89500f92e4d2a09d2809149a714ee'
+          curl -fL --retry 10 --retry-delay 3 "$base/mojing-studio.zip" -o /tmp/mojing.zip
+          echo '1b671815e08c7f3e03e4c9d132c344a52bb89500f92e4d2a09d2809149a714ee  /tmp/mojing.zip' | sha256sum -c -
+          rm -rf /tmp/src && mkdir -p /tmp/src
+          unzip -q /tmp/mojing.zip -d /tmp/src
+          root=/tmp/src
+          if [ ! -f "$root/README.md" ]; then
+            first="$(find "$root" -mindepth 1 -maxdepth 1 -type d | head -n1 || true)"
+            if [ -n "$first" ] && [ -f "$first/README.md" ]; then root="$first"; fi
+          fi
+          for f in README.md app/main.py app/orchestrator.py app/agent_kernel.py app/runtime.py app/db.py app/static/index.html tests/test_agent_kernel.py; do test -f "$root/$f"; done
+          test "$(find "$root" -type f | wc -l)" -ge 30
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a "$root"/. .
+          git config user.name 'Mojing Studio Import'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -A
+          git commit -m 'Import Mojing Studio'
+          git push origin HEAD:main
