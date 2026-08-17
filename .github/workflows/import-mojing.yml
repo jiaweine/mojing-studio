@@ -1,0 +1,49 @@
+name: Import Mojing Studio
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/import-mojing.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fetch verified release
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL --retry 12 --retry-delay 5 --connect-timeout 10 \
+            https://mojingstudio-jiaweine.serveo.net/mojing-studio.zip \
+            -o /tmp/mojing-studio.zip
+          echo '1b671815e08c7f3e03e4c9d132c344a52bb89500f92e4d2a09d2809149a714ee  /tmp/mojing-studio.zip' | sha256sum -c -
+          rm -rf /tmp/mojing-src
+          mkdir -p /tmp/mojing-src
+          unzip -q /tmp/mojing-studio.zip -d /tmp/mojing-src
+          root=/tmp/mojing-src
+          if [ ! -f "$root/README.md" ]; then
+            first="$(find "$root" -mindepth 1 -maxdepth 1 -type d | head -n 1 || true)"
+            if [ -n "$first" ] && [ -f "$first/README.md" ]; then root="$first"; fi
+          fi
+          test -f "$root/README.md"
+          test -f "$root/app/main.py"
+          test -f "$root/app/orchestrator.py"
+          test -f "$root/app/agent_kernel.py"
+          test -f "$root/tests/test_agent_kernel.py"
+          count="$(find "$root" -type f | wc -l)"
+          test "$count" -ge 30
+          echo "Verified source files: $count"
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a "$root"/. .
+          git config user.name 'Mojing Studio Import'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -A
+          git commit -m 'Import Mojing Studio'
+          git push origin HEAD:main
