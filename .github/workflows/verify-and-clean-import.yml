@@ -1,0 +1,27 @@
+name: Verify and Clean Mojing Import
+
+on:
+  push:
+    branches: [agent/import-upload]
+    paths: ['.github/import/verify-clean-trigger.txt']
+
+permissions:
+  contents: write
+
+jobs:
+  verify-clean:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Verify imported main and remove staging branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" != 'cf6207f67a3582336d72717df53c7eabf4a40628'
+          for f in README.md app/main.py app/orchestrator.py app/agent_kernel.py app/runtime.py app/db.py app/static/index.html tests/test_agent_kernel.py tests/test_product.py requirements.txt; do test -f "$f"; done
+          test "$(find . -type f ! -path './.git/*' ! -path './.github/*' | wc -l)" -eq 33
+          git push origin --delete agent/import-upload
